@@ -1,9 +1,10 @@
-"""BilimAI FastAPI entrypoint."""
+"""BilimAI FastAPI entrypoint — production-ready."""
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -28,13 +29,21 @@ logger = logging.getLogger("bilimai")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
+    try:
+        init_db()
+        logger.info("✓ Database initialized")
+    except Exception as e:
+        logger.exception("Database init failed: %s", e)
     logger.info("BilimAI started in %s mode", settings.APP_ENV)
     yield
 
 
-app = FastAPI(title=settings.APP_NAME, lifespan=lifespan,
-              docs_url="/api/docs" if not settings.is_production else None)
+app = FastAPI(
+    title=settings.APP_NAME,
+    lifespan=lifespan,
+    docs_url="/api/docs" if not settings.is_production else None,
+    redoc_url=None,
+)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -55,7 +64,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 class LanguageSyncMiddleware(BaseHTTPMiddleware):
-    """If ?lang=xx is present and user is logged in, persist to their profile."""
+    """Persist ?lang=xx to user profile for logged-in users."""
     async def dispatch(self, request: Request, call_next):
         lang = request.query_params.get("lang")
         if lang and lang in SUPPORTED_LANGUAGES:
@@ -69,6 +78,8 @@ class LanguageSyncMiddleware(BaseHTTPMiddleware):
                         if u and u.language != lang:
                             u.language = lang
                             db.commit()
+                    except Exception as e:
+                        logger.warning("Lang sync failed: %s", e)
                     finally:
                         db.close()
         return await call_next(request)
@@ -76,13 +87,22 @@ class LanguageSyncMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(LanguageSyncMiddleware)
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY,
-                   same_site="lax", https_only=settings.is_production)
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY,
+    same_site="lax",
+    https_only=settings.is_production,
+)
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# Static files
+try:
+    app.mount("/static", StaticFiles(directory="app/static"), name="static")
+except Exception as e:
+    logger.warning("Static mount failed: %s", e)
 
 templates = Jinja2Templates(directory="app/templates")
 
+# Routers
 app.include_router(auth.router)
 app.include_router(dashboard.router)
 app.include_router(lessons.router)
@@ -98,4 +118,13 @@ app.include_router(admin.router)
 
 @app.get("/healthz")
 def health():
-    return {"status": "ok", "app": settings.APP_NAME}
+    return {"status": "ok", "app": settings.APP_NAME, "env": settings.APP_ENV}
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled error on %s: %s", request.url.path, exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )

@@ -5,10 +5,13 @@ from typing import Generator
 
 from app.config import settings
 
-connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+url = settings.database_url_normalized
+
+# SQLite uchun check_same_thread kerak; PostgreSQL uchun yo'q
+connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    url,
     connect_args=connect_args,
     pool_pre_ping=True,
     echo=False,

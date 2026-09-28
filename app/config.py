@@ -1,4 +1,4 @@
-"""Application configuration loaded from environment variables."""
+"""Application configuration from environment variables."""
 from functools import lru_cache
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -11,6 +11,7 @@ class Settings(BaseSettings):
         env_file=str(BASE_DIR / ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
+        case_sensitive=True,
     )
 
     APP_NAME: str = "BilimAI"
@@ -18,14 +19,14 @@ class Settings(BaseSettings):
     APP_DEBUG: bool = True
     SECRET_KEY: str = "dev-insecure-secret-change-me-please-32chars"
     SESSION_COOKIE_NAME: str = "bilimai_session"
-    SESSION_MAX_AGE: int = 604800  # 7 days
+    SESSION_MAX_AGE: int = 604800
 
     DATABASE_URL: str = "sqlite:///./bilimai.db"
 
     AI_PROVIDER: str = "groq"
     AI_API_KEY: str = ""
     AI_BASE_URL: str = "https://api.groq.com/openai/v1"
-    AI_MODEL: str = "llama-3.3-70b-versatile"
+    AI_MODEL: str = "openai/gpt-oss-120b"
     AI_TIMEOUT: int = 60
 
     ADMIN_USERNAME: str = "admin"
@@ -38,6 +39,14 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.APP_ENV.lower() == "production"
+
+    @property
+    def database_url_normalized(self) -> str:
+        """Render/Heroku gives postgres:// — SQLAlchemy needs postgresql://"""
+        url = self.DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        return url
 
 
 @lru_cache
