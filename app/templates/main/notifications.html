@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ t('notifications') }} — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel">
+  <div class="panel-head">
+    <h1 class="panel-title">🔔 {{ t('notifications') }}</h1>
+    <form method="post" action="/notifications/read-all"><button class="btn ghost sm">{{ t('save') }}</button></form>
+  </div>
+  <ul class="list">
+    {% for n in notifications %}
+    <li class="list-item {% if not n.is_read %}unread{% endif %}">
+      <div>
+        <div class="list-title">{{ n.title }}</div>
+        <div class="list-meta">{{ n.kind }} · {{ n.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        {% if n.body %}<div class="list-body">{{ n.body }}</div>{% endif %}
+      </div>
+    </li>
+    {% else %}
+    <li class="empty">{{ t('no_data') }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

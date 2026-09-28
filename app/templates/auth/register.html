@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ t('register') }} — BilimAI{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="glass auth-card">
+    <div class="auth-mascot"><div class="mascot-avatar">✨</div></div>
+    <h1 class="auth-title">{{ t('register') }}</h1>
+    <p class="auth-sub">{{ t('tagline') }}</p>
+    {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+    <form method="post" action="/auth/register" class="form">
+      <label>{{ t('email') }}</label>
+      <input type="email" name="email" required />
+      <label>{{ t('username') }}</label>
+      <input type="text" name="username" required minlength="3" />
+      <label>{{ t('password') }}</label>
+      <input type="password" name="password" required minlength="8" />
+      <label>{{ t('password_confirm') }}</label>
+      <input type="password" name="password_confirm" required minlength="8" />
+      <label>{{ t('language') }}</label>
+      <select name="language">
+        <option value="uz" {% if lang=='uz' %}selected{% endif %}>🇺🇿 O‘zbekcha</option>
+        <option value="ru" {% if lang=='ru' %}selected{% endif %}>🇷🇺 Русский</option>
+        <option value="en" {% if lang=='en' %}selected{% endif %}>🇬🇧 English</option>
+      </select>
+      <button class="btn primary full">{{ t('register') }}</button>
+    </form>
+    <div class="auth-footer">
+      <a href="/auth/login?lang={{ lang }}">{{ t('login') }}</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

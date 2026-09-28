@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ t('recent_lessons') }} — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel">
+  <h1 class="panel-title">{{ t('recent_lessons') }}</h1>
+  <ul class="list">
+    {% for l in lessons %}
+    <li class="list-item">
+      <div>
+        <div class="list-title">{{ l.topic }}</div>
+        <div class="list-meta">{{ l.subject }} · {{ l.created_at.strftime('%Y-%m-%d %H:%M') }} · AI: {{ l.ai_status }}</div>
+      </div>
+      <a class="btn ghost sm" href="/lessons/{{ l.id }}/review?lang={{ lang }}">{{ t('start_test') }}</a>
+    </li>
+    {% else %}
+    <li class="empty">{{ t('no_data') }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

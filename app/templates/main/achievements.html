@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ t('achievements') }} — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel">
+  <h1 class="panel-title">🏆 {{ t('achievements') }}</h1>
+  <div class="ach-grid">
+    {% for a in achievements %}
+      <div class="glass ach-card">
+        <div class="ach-title">{{ a.title }}</div>
+        <div class="ach-desc">{{ a.description }}</div>
+        <div class="ach-date">{{ a.unlocked_at.strftime('%Y-%m-%d') }}</div>
+      </div>
+    {% else %}
+      <div class="empty glass">{{ t('no_data') }}</div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

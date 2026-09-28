@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson.topic }} — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel">
+  <h1 class="panel-title">{{ lesson.topic }}</h1>
+  <p class="list-meta">{{ lesson.subject }} · {{ lesson.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+
+  {% if ai_error %}
+  <div class="alert error" style="margin: 16px 0;">
+    <b>⚠️ {{ ai_error }}</b>
+    <div style="margin-top:6px; font-size:0.85rem;">
+      AI xizmati vaqtincha javob bermadi. Darsingiz saqlandi. Keyinroq qayta urinib ko'ring.
+    </div>
+  </div>
+  {% endif %}
+
+  <h3 class="section-title">📌 O'rgangan mavzularingiz</h3>
+  <ul class="chips">
+    {% for t in (lesson.ai_topics or []) %}
+      <li class="chip">{{ t }}</li>
+    {% else %}
+      <li class="empty">Ma'lumot yo'q</li>
+    {% endfor %}
+  </ul>
+
+  <h3 class="section-title">📝 Qisqa xulosa</h3>
+  <p class="summary">{{ lesson.ai_summary or '—' }}</p>
+
+  <h3 class="section-title">📖 Dars matni</h3>
+  <div class="lesson-content">{{ lesson.content }}</div>
+
+  {% if lesson.notes %}
+  <h3 class="section-title">Qo'shimcha eslatmalar</h3>
+  <p class="summary">{{ lesson.notes }}</p>
+  {% endif %}
+
+  <form method="post" action="/lessons/{{ lesson.id }}/generate-test" class="actions"
+        onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='⏳ Savollar tayyorlanmoqda...';">
+    <button class="btn primary lg">
+      🎯 Testni boshlash — 10 savol
+    </button>
+  </form>
+  <p style="color: var(--muted); font-size: 0.85rem; margin-top: 8px;">
+    AI 10 ta savolni tayyorlashi 5–15 soniya olishi mumkin.
+  </p>
+</section>
+{% endblock %}

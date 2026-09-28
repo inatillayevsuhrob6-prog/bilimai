@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ t('chat') }} — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel chat-panel" style="min-height:75vh;">
+  <div class="panel-head">
+    <h1 class="panel-title">💬 {{ t('chat') }}</h1>
+    <form method="get" style="display:flex; gap:8px; align-items:center;">
+      <select name="lesson_id" onchange="this.form.submit()"
+              style="padding:8px 12px; border-radius:10px; background:rgba(0,0,0,0.3); color:var(--text); border:1px solid var(--glass-bd);">
+        <option value="">— Dars tanlash —</option>
+        {% for l in lessons %}
+          <option value="{{ l.id }}" {% if lesson_id == l.id %}selected{% endif %}>{{ l.topic }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div class="chat-stream" id="chatStream" style="display:flex; flex-direction:column; gap:12px; padding:16px 0; min-height:400px;">
+    {% if conv and conv.messages %}
+      {% for m in conv.messages %}
+        <div class="bubble {{ m.role }}" style="align-self:{{ 'flex-end' if m.role=='user' else 'flex-start' }};">
+          <div class="bubble-body">{{ m.content }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center; padding:40px; color:var(--muted);">
+        <div style="font-size:3rem;">💬</div>
+        <p>Xabar yozib AI'dan so'rang. Masalan:</p>
+        <p style="font-style:italic; color:var(--primary-2);">
+          "Men kvadrat tenglamalarni tushunmadim, tushuntirib bering"
+        </p>
+      </div>
+    {% endif %}
+  </div>
+
+  <form method="post" action="/chat/send" class="chat-form" style="display:flex; gap:10px; margin-top:10px;">
+    <input type="hidden" name="lesson_id" value="{{ lesson_id or 0 }}" />
+    <input type="hidden" name="conversation_id" value="{{ conv.id if conv else 0 }}" />
+    <input name="message" placeholder="💭 Xabar yozing..." required autocomplete="off" style="flex:1;" />
+    <button class="btn primary lg">📤 {{ t('send') }}</button>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const stream = document.getElementById('chatStream');
+  if (stream) stream.scrollTop = stream.scrollHeight;
+</script>
+{% endblock %}

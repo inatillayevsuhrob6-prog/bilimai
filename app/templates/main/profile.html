@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ t('profile') }} — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel">
+  <h1 class="panel-title">{{ t('profile') }} — {{ user.username }}</h1>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-num">{{ stats.lessons }}</div><div class="stat-label">{{ t('lessons_count') }}</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.tests }}</div><div class="stat-label">{{ t('tests_completed') }}</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.avg }}%</div><div class="stat-label">{{ t('avg_score') }}</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.streak }}</div><div class="stat-label">🔥 {{ t('streak') }}</div></div>
+  </div>
+</section>
+
+<section class="glass panel">
+  <h3 class="panel-title">{{ t('settings') }}</h3>
+  <form method="post" action="/profile/settings" class="form">
+    <div class="row-2">
+      <div>
+        <label>{{ t('language') }}</label>
+        <select name="language">
+          <option value="uz" {% if user.language=='uz' %}selected{% endif %}>🇺🇿 O‘zbekcha</option>
+          <option value="ru" {% if user.language=='ru' %}selected{% endif %}>🇷🇺 Русский</option>
+          <option value="en" {% if user.language=='en' %}selected{% endif %}>🇬🇧 English</option>
+        </select>
+      </div>
+      <div>
+        <label>{{ t('theme') }}</label>
+        <select name="theme">
+          <option value="dark" {% if user.theme=='dark' %}selected{% endif %}>🌙 {{ t('dark') }}</option>
+          <option value="light" {% if user.theme=='light' %}selected{% endif %}>☀️ {{ t('light') }}</option>
+        </select>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" name="auto_save_notes" {% if settings_row.auto_save_notes %}checked{% endif %}/> Auto-save to notebook</label>
+    <label class="check"><input type="checkbox" name="notify_tests" {% if settings_row.notify_tests %}checked{% endif %}/> {{ t('notifications') }} — Tests</label>
+    <label class="check"><input type="checkbox" name="notify_revision" {% if settings_row.notify_revision %}checked{% endif %}/> {{ t('notifications') }} — Revision</label>
+    <label class="check"><input type="checkbox" name="notify_streak" {% if settings_row.notify_streak %}checked{% endif %}/> {{ t('notifications') }} — Streak</label>
+    <label class="check"><input type="checkbox" name="notify_weak_topics" {% if settings_row.notify_weak_topics %}checked{% endif %}/> {{ t('notifications') }} — Weak topics</label>
+    <button class="btn primary">{{ t('save') }}</button>
+  </form>
+</section>
+
+<section class="grid-2">
+  <div class="glass panel">
+    <h3 class="panel-title">{{ t('change_password') }}</h3>
+    <form method="post" action="/profile/change-password" class="form">
+      <label>{{ t('password') }}</label>
+      <input type="password" name="old_password" required />
+      <label>New password</label>
+      <input type="password" name="new_password" required minlength="8" />
+      <label>{{ t('password_confirm') }}</label>
+      <input type="password" name="new_password_confirm" required minlength="8" />
+      <button class="btn primary">{{ t('save') }}</button>
+    </form>
+  </div>
+
+  <div class="glass panel danger-panel">
+    <h3 class="panel-title">{{ t('delete_account') }}</h3>
+    <form method="post" action="/profile/delete-account" class="form" onsubmit="return confirm('{{ t('confirm_delete') }}')">
+      <label>{{ t('password') }}</label>
+      <input type="password" name="password" required />
+      <button class="btn danger">{{ t('delete_account') }}</button>
+    </form>
+  </div>
+</section>
+
+<section class="glass panel">
+  <h3 class="panel-title">{{ t('achievements') }}</h3>
+  <ul class="chips">
+    {% for a in achievements %}<li class="chip ok">{{ a.title }}</li>{% else %}<li class="empty">{{ t('no_data') }}</li>{% endfor %}
+  </ul>
+</section>
+{% endblock %}

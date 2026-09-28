@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ t('analytics') }} — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel">
+  <h1 class="panel-title">📊 {{ t('analytics') }}</h1>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-num">{{ avg }}%</div><div class="stat-label">{{ t('avg_score') }}</div></div>
+    <div class="stat"><div class="stat-num">{{ best }}%</div><div class="stat-label">Best</div></div>
+    <div class="stat"><div class="stat-num">{{ lessons_count }}</div><div class="stat-label">{{ t('lessons_count') }}</div></div>
+    <div class="stat"><div class="stat-num">{{ tests_count }}</div><div class="stat-label">{{ t('tests_completed') }}</div></div>
+    <div class="stat"><div class="stat-num">{{ total_q }}</div><div class="stat-label">Questions</div></div>
+    <div class="stat"><div class="stat-num">{{ correct_pct }}%</div><div class="stat-label">Correct</div></div>
+    <div class="stat"><div class="stat-num">{{ streak }}</div><div class="stat-label">🔥 {{ t('streak') }}</div></div>
+  </div>
+</section>
+
+<section class="grid-2">
+  <div class="glass panel">
+    <h3 class="panel-title">{{ t('progress_chart') }}</h3>
+    <canvas id="aChart" height="180"></canvas>
+  </div>
+  <div class="glass panel">
+    <h3 class="panel-title">{{ t('strong_concepts') }}</h3>
+    <ul class="list">
+      {% for s in strong %}<li class="list-item"><span>{{ s.subject }}</span><span>{{ s.avg }}%</span></li>{% else %}<li class="empty">{{ t('no_data') }}</li>{% endfor %}
+    </ul>
+    <h3 class="panel-title" style="margin-top:1rem">{{ t('weak_concepts') }}</h3>
+    <ul class="list">
+      {% for s in weak %}<li class="list-item"><span>{{ s.subject }}</span><span>{{ s.avg }}%</span></li>{% else %}<li class="empty">{{ t('no_data') }}</li>{% endfor %}
+    </ul>
+  </div>
+</section>
+
+<section class="glass panel">
+  <h3 class="panel-title">History</h3>
+  <ul class="list">
+    {% for h in history %}
+    <li class="list-item"><span>{{ h.date }}</span><span>{{ h.pct }}%</span></li>
+    {% else %}
+    <li class="empty">{{ t('no_data') }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  const data = {{ chart|tojson }};
+  const ctx = document.getElementById('aChart');
+  if (ctx && data.length) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: { labels: data.map(d => d.date), datasets: [{ data: data.map(d => d.pct), backgroundColor: '#a855f7' }] },
+      options: { plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100 } } }
+    });
+  }
+</script>
+{% endblock %}

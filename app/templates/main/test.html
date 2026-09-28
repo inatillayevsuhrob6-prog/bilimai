@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ t('start_test') }} — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel">
+  <div class="test-head">
+    <h1 class="panel-title">{{ lesson.topic }}</h1>
+    <div class="badge">{{ t('question') }} 1..{{ questions|length }} / {{ questions|length }}</div>
+  </div>
+
+  <form method="post" action="/tests/{{ lesson.id }}/submit" id="testForm" class="form">
+    {% for q in questions %}
+    <div class="question-card">
+      <div class="q-head">
+        <span class="q-num">#{{ q.order_index }}</span>
+        <span class="q-diff diff-{{ q.difficulty }}">{{ q.difficulty }}</span>
+        <span class="q-type">{{ q.qtype }}</span>
+      </div>
+      <p class="q-text">{{ q.question_text }}</p>
+      {% if q.qtype == 'mcq' and q.options %}
+        <div class="options">
+          {% for opt in q.options %}
+          <label class="option">
+            <input type="radio" name="q_{{ q.order_index }}" value="{{ opt }}" />
+            <span>{{ opt }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      {% elif q.qtype == 'true_false' %}
+        <div class="options">
+          <label class="option"><input type="radio" name="q_{{ q.order_index }}" value="true" /><span>True / To'g'ri</span></label>
+          <label class="option"><input type="radio" name="q_{{ q.order_index }}" value="false" /><span>False / Noto'g'ri</span></label>
+        </div>
+      {% else %}
+        <input type="text" name="q_{{ q.order_index }}" placeholder="{{ t('your_answer') }}" />
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <button class="btn primary lg full">{{ t('finish_test') }}</button>
+  </form>
+</section>
+{% endblock %}

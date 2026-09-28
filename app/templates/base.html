@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="{{ lang|default('uz') }}" data-theme="{{ user.theme if user else 'dark' }}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{% block title %}BilimAI{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+<link rel="stylesheet" href="/static/css/anime-bg.css">
+</head>
+<body class="app-body">
+
+  <!-- ==================== ANIME BACKGROUND ==================== -->
+  <div class="anime-bg">
+    <div class="sky"></div>
+    <div class="stars"></div>
+    <div class="celestial"></div>
+
+    <div class="cloud cloud-1"></div>
+    <div class="cloud cloud-2"></div>
+    <div class="cloud cloud-3"></div>
+    <div class="cloud cloud-4"></div>
+
+    <div class="mountains">
+      <svg viewBox="0 0 1440 400" preserveAspectRatio="none">
+        <!-- back range -->
+        <path d="M0,320 L120,180 L260,260 L400,140 L560,280 L720,200 L880,300 L1040,180 L1200,260 L1340,160 L1440,240 L1440,400 L0,400 Z"
+              fill="rgba(60,30,100,0.55)"/>
+        <!-- mid range -->
+        <path d="M0,360 L180,220 L340,300 L520,200 L700,320 L880,240 L1080,320 L1280,220 L1440,300 L1440,400 L0,400 Z"
+              fill="rgba(40,20,70,0.75)"/>
+        <!-- front range -->
+        <path d="M0,400 L200,280 L380,340 L560,260 L760,360 L960,300 L1200,360 L1440,300 L1440,400 Z"
+              fill="rgba(25,12,45,0.9)"/>
+      </svg>
+    </div>
+
+    <div class="meadow"></div>
+
+    <div class="fireflies" id="fireflies"></div>
+
+    <div class="shooting-star" style="top:15%; left:10%; animation-delay: 3s;"></div>
+    <div class="shooting-star" style="top:25%; left:35%; animation-delay: 11s;"></div>
+    <div class="shooting-star" style="top:8%;  left:55%; animation-delay: 19s;"></div>
+  </div>
+  <!-- ========================================================== -->
+
+  {% block nav %}
+  {% if user %}
+  <nav class="topbar glass">
+    <div class="topbar-inner">
+      <a href="/?lang={{ lang }}" class="brand">
+        <span class="brand-mark">B</span>
+        <span class="brand-name">Bilim<span class="grad">AI</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="/?lang={{ lang }}">{{ t('dashboard') }}</a>
+        <a href="/lessons/list?lang={{ lang }}">{{ t('recent_lessons') }}</a>
+        <a href="/notebook?lang={{ lang }}">{{ t('notebook') }}</a>
+        <a href="/analytics?lang={{ lang }}">{{ t('analytics') }}</a>
+        <a href="/achievements?lang={{ lang }}">{{ t('achievements') }}</a>
+        <a href="/chat?lang={{ lang }}">{{ t('chat') }}</a>
+      </div>
+      <div class="nav-actions">
+        <a href="/notifications?lang={{ lang }}" class="icon-btn" title="{{ t('notifications') }}">🔔</a>
+        <a href="/profile?lang={{ lang }}" class="icon-btn" title="{{ t('profile') }}">👤</a>
+        {% if user.is_admin %}<a href="/admin" class="icon-btn" title="{{ t('admin') }}">🛡️</a>{% endif %}
+        <form method="post" action="/auth/logout?lang={{ lang }}" style="display:inline">
+          <button class="icon-btn" title="{{ t('logout') }}">⎋</button>
+        </form>
+        <div class="lang-switch">
+          <a class="lang {% if lang=='uz' %}active{% endif %}" href="/?lang=uz">UZ</a>
+          <a class="lang {% if lang=='ru' %}active{% endif %}" href="/?lang=ru">RU</a>
+          <a class="lang {% if lang=='en' %}active{% endif %}" href="/?lang=en">EN</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+  {% endblock %}
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <span>BilimAI © 2025 — {{ t('tagline') }} 🌸</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="/static/js/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

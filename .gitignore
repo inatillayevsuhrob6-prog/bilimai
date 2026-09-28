@@ -1,0 +1,73 @@
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ========================
+# Virtual environment
+# ========================
+.venv/
+venv/
+ENV/
+env/
+
+# ========================
+# 🔐 SECRETS — ENG MUHIM!
+# ========================
+.env
+.env.local
+.env.*.local
+
+# ========================
+# Database
+# ========================
+*.db
+*.sqlite
+*.sqlite3
+bilimai.db
+bilimai.db.backup
+bilimai.db-journal
+
+# ========================
+# AI / API keys (himoya uchun)
+# ========================
+*api_key*
+*apikey*
+*secret*
+
+# ========================
+# IDE / Editor
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# Logs & cache
+# ========================
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+.cache/
+
+# ========================
+# Node (agar kelajakda)
+# ========================
+node_modules/

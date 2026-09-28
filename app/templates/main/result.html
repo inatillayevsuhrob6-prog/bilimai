@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ t('score') }} — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel result-hero">
+  <div class="result-score">
+    <div class="big-score">{{ tr.correct_count }}/{{ tr.total_count }}</div>
+    <div class="pct">{{ tr.percentage }}%</div>
+  </div>
+  <div class="result-bar">
+    <div class="bar-fill" style="width: {{ tr.percentage }}%"></div>
+  </div>
+  <p class="summary">{{ tr.ai_analysis or '—' }}</p>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="section-title">{{ t('strong_concepts') }}</h3>
+      <ul class="chips">
+        {% for c in (tr.strong_concepts or []) %}<li class="chip ok">{{ c }}</li>{% else %}<li class="empty">—</li>{% endfor %}
+      </ul>
+    </div>
+    <div>
+      <h3 class="section-title">{{ t('weak_concepts') }}</h3>
+      <ul class="chips">
+        {% for c in (tr.weak_concepts or []) %}<li class="chip warn">{{ c }}</li>{% else %}<li class="empty">—</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="section-title">{{ t('recommendations') }}</h3>
+  <p class="summary">{{ tr.recommendations or '—' }}</p>
+</section>
+
+<section class="glass panel">
+  <h2 class="panel-title">{{ t('mistake_analysis') }}</h2>
+  {% for q in questions %}
+    {% set a = answers.get(q.id) %}
+    <div class="analysis-item {% if a and a.is_correct %}ok{% else %}bad{% endif %}">
+      <div class="q-head">
+        <span class="q-num">#{{ q.order_index }}</span>
+        <span class="q-diff">{{ q.difficulty }}</span>
+        {% if a and a.is_correct %}<span class="tag ok">{{ t('correct') }}</span>{% else %}<span class="tag bad">{{ t('incorrect') }}</span>{% endif %}
+      </div>
+      <p class="q-text">{{ q.question_text }}</p>
+      <p class="ans"><b>{{ t('your_answer') }}:</b> {{ a.user_answer if a else '—' }}</p>
+      <p class="ans"><b>{{ t('correct_answer') }}:</b> {{ q.correct_answer }}</p>
+      {% if a and not a.is_correct %}
+        <p class="ans"><b>{{ t('why_wrong') }}:</b> {{ a.ai_feedback or q.explanation or '—' }}</p>
+        <p class="ans"><b>{{ t('what_to_revise') }}:</b> {{ q.explanation or '—' }}</p>
+      {% endif %}
+    </div>
+  {% endfor %}
+</section>
+
+<section class="glass panel">
+  <h3 class="panel-title">{{ t('save_to_notebook') }}</h3>
+  <form method="post" action="/notebook/create" class="form">
+    <input type="hidden" name="title" value="{{ lesson.topic }} — {{ tr.percentage }}%" />
+    <input type="hidden" name="subject" value="{{ lesson.subject }}" />
+    <textarea name="body" rows="6">Xulosa: {{ lesson.ai_summary or '' }}
+
+Ball: {{ tr.correct_count }}/{{ tr.total_count }} ({{ tr.percentage }}%)
+Tavsiyalar: {{ tr.recommendations or '' }}
+Zaif mavzular: {{ (tr.weak_concepts or [])|join(', ') }}</textarea>
+    <button class="btn primary">{{ t('save_to_notebook') }}</button>
+  </form>
+</section>
+{% endblock %}

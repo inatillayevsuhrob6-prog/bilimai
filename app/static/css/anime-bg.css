@@ -1,0 +1,206 @@
+/* ============================================================
+   BilimAI — Ghibli-inspired anime background
+   Sky gradient + clouds + distant mountains + meadow + fireflies
+   ============================================================ */
+
+.anime-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* --- Sky gradient (day → night, theme-aware) --- */
+.anime-bg .sky {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg,
+      var(--sky-top, #1a1040) 0%,
+      var(--sky-mid, #4c2a7a) 35%,
+      var(--sky-low, #b06ab3) 65%,
+      var(--sky-horizon, #f8b195) 100%);
+  transition: background 1s ease;
+}
+[data-theme="light"] .anime-bg .sky {
+  --sky-top: #4a9eff;
+  --sky-mid: #7fc4ff;
+  --sky-low: #b8e0ff;
+  --sky-horizon: #ffe9c9;
+}
+
+/* --- Sun/Moon --- */
+.anime-bg .celestial {
+  position: absolute;
+  top: 12%;
+  right: 12%;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff7d6, #ffd166 45%, #f79e54 75%);
+  box-shadow:
+    0 0 60px 20px rgba(255,209,102,0.55),
+    0 0 140px 40px rgba(255,209,102,0.3),
+    inset -8px -10px 20px rgba(0,0,0,0.08);
+  animation: celestialFloat 12s ease-in-out infinite;
+}
+[data-theme="dark"] .anime-bg .celestial {
+  background: radial-gradient(circle at 35% 35%, #fffef0, #e8e4ff 45%, #b8b0ff 75%);
+  box-shadow:
+    0 0 60px 20px rgba(232,228,255,0.45),
+    0 0 140px 40px rgba(184,176,255,0.25);
+}
+@keyframes celestialFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-10px); }
+}
+
+/* --- Clouds (SVG-like with border-radius blobs) --- */
+.anime-bg .cloud {
+  position: absolute;
+  background: rgba(255,255,255,0.75);
+  border-radius: 100px;
+  filter: blur(0.5px);
+  box-shadow:
+    0 20px 40px rgba(255,255,255,0.15),
+    inset 0 -10px 20px rgba(200,180,255,0.4);
+  opacity: 0.85;
+}
+.anime-bg .cloud::before,
+.anime-bg .cloud::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+.anime-bg .cloud::before {
+  width: 60%; height: 140%;
+  top: -60%; left: 15%;
+}
+.anime-bg .cloud::after {
+  width: 45%; height: 110%;
+  top: -40%; right: 12%;
+}
+.cloud-1 { width: 180px; height: 55px; top: 12%; left: 8%;  animation: cloudMove1 90s linear infinite; }
+.cloud-2 { width: 240px; height: 70px; top: 22%; left: 60%; animation: cloudMove2 120s linear infinite; opacity: 0.7; }
+.cloud-3 { width: 140px; height: 45px; top: 8%;  left: 40%; animation: cloudMove1 110s linear infinite; opacity: 0.6; }
+.cloud-4 { width: 200px; height: 60px; top: 30%; left: 80%; animation: cloudMove3 100s linear infinite; opacity: 0.5; }
+
+@keyframes cloudMove1 {
+  from { transform: translateX(-250px); }
+  to   { transform: translateX(calc(100vw + 250px)); }
+}
+@keyframes cloudMove2 {
+  from { transform: translateX(0); }
+  to   { transform: translateX(calc(100vw + 300px)); }
+}
+@keyframes cloudMove3 {
+  from { transform: translateX(-150px) scale(0.9); }
+  to   { transform: translateX(calc(100vw + 150px)) scale(0.9); }
+}
+
+/* --- Mountains (distant) --- */
+.anime-bg .mountains {
+  position: absolute;
+  bottom: 28%;
+  left: 0; right: 0;
+  height: 40%;
+  pointer-events: none;
+}
+.anime-bg .mountains svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* --- Meadow / grass --- */
+.anime-bg .meadow {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 30%;
+  background:
+    linear-gradient(180deg,
+      var(--meadow-1, #2d5a3d) 0%,
+      var(--meadow-2, #1f4129) 60%,
+      var(--meadow-3, #12281a) 100%);
+  transition: background 1s ease;
+}
+[data-theme="light"] .anime-bg .meadow {
+  --meadow-1: #a8e063;
+  --meadow-2: #56ab2f;
+  --meadow-3: #2d5a3d;
+}
+.anime-bg .meadow::before {
+  content: '';
+  position: absolute;
+  top: -30px; left: 0; right: 0;
+  height: 60px;
+  background: inherit;
+  filter: blur(8px);
+  opacity: 0.5;
+}
+
+/* --- Fireflies / sparkles on meadow --- */
+.anime-bg .firefly {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff9b0;
+  box-shadow: 0 0 12px 3px rgba(255,249,176,0.85);
+  animation: fireflyFloat 8s ease-in-out infinite;
+}
+@keyframes fireflyFloat {
+  0%,100% { transform: translate(0,0); opacity: 0.3; }
+  25%     { transform: translate(15px,-25px); opacity: 1; }
+  50%     { transform: translate(-10px,-50px); opacity: 0.6; }
+  75%     { transform: translate(20px,-20px); opacity: 0.9; }
+}
+
+/* --- Stars (night theme only) --- */
+.anime-bg .stars {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, white, transparent),
+    radial-gradient(1px 1px at 60% 70%, white, transparent),
+    radial-gradient(1.5px 1.5px at 80% 20%, white, transparent),
+    radial-gradient(1px 1px at 40% 80%, white, transparent),
+    radial-gradient(1px 1px at 10% 60%, white, transparent),
+    radial-gradient(1.5px 1.5px at 90% 50%, white, transparent);
+  background-size: 100% 100%;
+  opacity: 0.6;
+  animation: starsTwinkle 4s ease-in-out infinite alternate;
+}
+[data-theme="light"] .anime-bg .stars { display: none; }
+@keyframes starsTwinkle {
+  from { opacity: 0.4; }
+  to   { opacity: 0.9; }
+}
+
+/* --- Occasional shooting star --- */
+.anime-bg .shooting-star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 15px 3px rgba(255,255,255,0.9);
+  animation: shootAcross 4s ease-in infinite;
+}
+.anime-bg .shooting-star::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 4px;
+  width: 140px; height: 1.5px;
+  background: linear-gradient(90deg, rgba(255,255,255,1), transparent);
+  transform: translateY(-50%);
+  border-radius: 2px;
+}
+@keyframes shootAcross {
+  0%   { transform: translate(0,0) rotate(35deg); opacity: 0; }
+  5%   { opacity: 1; }
+  100% { transform: translate(600px, 400px) rotate(35deg); opacity: 0; }
+}

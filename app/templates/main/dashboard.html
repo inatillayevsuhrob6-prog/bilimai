@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}{{ t('dashboard') }} — BilimAI{% endblock %}
+{% block content %}
+
+<section class="hero glass">
+  <div class="hero-left">
+    <span class="pill">🌸 {{ t('welcome') }}, {{ user.username }}</span>
+    <h1 class="hero-title">{{ t('today_lesson') }}</h1>
+    <p class="hero-sub">{{ t('tagline') }}</p>
+  </div>
+  <div class="hero-right">
+    <div class="streak-badge">
+      <span class="flame">🔥</span>
+      <div>
+        <div class="streak-num">{{ stats.streak }}</div>
+        <div class="streak-label">{{ t('streak') }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stat-grid">
+  <div class="stat glass"><div class="stat-num">{{ stats.lessons }}</div><div class="stat-label">{{ t('lessons_count') }}</div></div>
+  <div class="stat glass"><div class="stat-num">{{ stats.tests }}</div><div class="stat-label">{{ t('tests_completed') }}</div></div>
+  <div class="stat glass"><div class="stat-num">{{ stats.avg }}%</div><div class="stat-label">{{ t('avg_score') }}</div></div>
+  <div class="stat glass"><div class="stat-num">{{ stats.unread }}</div><div class="stat-label">{{ t('notifications') }}</div></div>
+</section>
+
+<section class="glass panel">
+  <h2 class="panel-title">{{ t('today_lesson') }}</h2>
+  <form method="post" action="/lessons/create" class="form lesson-form">
+    <div class="row-2">
+      <div>
+        <label>{{ t('subject') }}</label>
+        <input list="subjects-list" name="subject" required placeholder="Matematika" />
+        <datalist id="subjects-list">
+          {% for s in subjects %}<option value="{{ s }}"></option>{% endfor %}
+        </datalist>
+      </div>
+      <div>
+        <label>{{ t('topic') }}</label>
+        <input name="topic" required placeholder="Kvadrat tenglamalar" />
+      </div>
+    </div>
+    <label>{{ t('what_learned') }}</label>
+    <textarea name="content" rows="5" required placeholder="Bugun ..."></textarea>
+    <label>{{ t('additional_notes') }}</label>
+    <textarea name="notes" rows="2"></textarea>
+    <label>{{ t('tutor_name') }} ({{ t('repetitor_mode') }})</label>
+    <input name="tutor_name" placeholder="F.I.Sh." />
+    <button class="btn primary lg full">{{ t('analyze_with_ai') }}</button>
+  </form>
+</section>
+
+<section class="grid-2">
+  <div class="glass panel">
+    <h3 class="panel-title">{{ t('progress_chart') }}</h3>
+    <canvas id="progressChart" height="180"></canvas>
+  </div>
+
+  <div class="glass panel">
+    <h3 class="panel-title">{{ t('recent_lessons') }}</h3>
+    <ul class="list">
+      {% for l in recent_lessons %}
+      <li class="list-item">
+        <div>
+          <div class="list-title">{{ l.topic }}</div>
+          <div class="list-meta">{{ l.subject }} · {{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        </div>
+        <a class="btn ghost sm" href="/lessons/{{ l.id }}/review?lang={{ lang }}">{{ t('start_test') }}</a>
+      </li>
+      {% else %}
+      <li class="empty">{{ t('no_data') }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+<section class="grid-2">
+  <div class="glass panel">
+    <h3 class="panel-title">{{ t('recent_mistakes') }}</h3>
+    <ul class="list">
+      {% for r in recent_results %}
+      <li class="list-item">
+        <div>
+          <div class="list-title">{{ r.percentage }}% — {{ r.correct_count }}/{{ r.total_count }}</div>
+          <div class="list-meta">{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        </div>
+        <a class="btn ghost sm" href="/tests/result/{{ r.id }}?lang={{ lang }}">{{ t('mistake_analysis') }}</a>
+      </li>
+      {% else %}
+      <li class="empty">{{ t('no_data') }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="glass panel">
+    <h3 class="panel-title">{{ t('recent_notes') }}</h3>
+    <ul class="list">
+      {% for n in recent_notes %}
+      <li class="list-item">
+        <div>
+          <div class="list-title">{{ n.title }}</div>
+          <div class="list-meta">{{ n.subject or '—' }}</div>
+        </div>
+        <a class="btn ghost sm" href="/notebook?lang={{ lang }}">{{ t('edit') }}</a>
+      </li>
+      {% else %}
+      <li class="empty">{{ t('no_data') }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+
+{% endblock %}
+{% block scripts %}
+<script>
+  const chartData = {{ chart_data|tojson }};
+  const ctx = document.getElementById('progressChart');
+  if (ctx && chartData.length) {
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartData.map(d => d.date),
+        datasets: [{
+          label: '{{ t("percentage") }}',
+          data: chartData.map(d => d.pct),
+          borderColor: '#a855f7',
+          backgroundColor: 'rgba(168,85,247,0.15)',
+          fill: true, tension: 0.35, pointRadius: 3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { min: 0, max: 100, ticks: { color: '#888' } }, x: { ticks: { color: '#888' } } }
+      }
+    });
+  }
+</script>
+{% endblock %}

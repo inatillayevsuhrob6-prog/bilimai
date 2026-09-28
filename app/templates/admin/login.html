@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Admin login — BilimAI{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <div class="glass auth-card">
+    <div class="auth-mascot"><div class="mascot-avatar">🛡️</div></div>
+    <h1 class="auth-title">Admin</h1>
+    {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+    <form method="post" action="/admin/login" class="form">
+      <label>Username</label><input name="username" required />
+      <label>Password</label><input type="password" name="password" required />
+      <button class="btn primary full">Log in</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

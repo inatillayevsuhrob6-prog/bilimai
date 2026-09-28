@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Admin — BilimAI{% endblock %}
+{% block content %}
+<section class="glass panel">
+  <h1 class="panel-title">🛡️ Admin Dashboard</h1>
+  <p class="summary">Privacy is preserved: private lesson content, notes and chats are not exposed here.</p>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-num">{{ stats.users }}</div><div class="stat-label">Users</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.active_users }}</div><div class="stat-label">Active users</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.lessons }}</div><div class="stat-label">Lessons</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.tests }}</div><div class="stat-label">Tests</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.questions }}</div><div class="stat-label">Questions</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.answers }}</div><div class="stat-label">Answers</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.notes }}</div><div class="stat-label">Notes</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.avg_score }}%</div><div class="stat-label">Avg score</div></div>
+    <div class="stat"><div class="stat-num">{{ stats.ai_conversations }}</div><div class="stat-label">AI chats</div></div>
+  </div>
+</section>
+
+<section class="glass panel">
+  <h3 class="panel-title">Recent audit log</h3>
+  <ul class="list">
+    {% for a in recent_audit %}
+    <li class="list-item">
+      <div>
+        <div class="list-title">{{ a.action }} — {{ a.target_type or '' }} #{{ a.target_id or '' }}</div>
+        <div class="list-meta">{{ a.created_at.strftime('%Y-%m-%d %H:%M:%S') }} · user: {{ a.actor_user_id }} · ip: {{ a.ip or '-' }}</div>
+      </div>
+    </li>
+    {% else %}
+    <li class="empty">No audit records</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

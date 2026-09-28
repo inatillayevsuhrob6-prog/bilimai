@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+{% block title %}{{ t('notebook') }} — BilimAI{% endblock %}
+
+{% block scripts %}
+<style>
+  .nb-toolbar {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto auto;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 900px) { .nb-toolbar { grid-template-columns: 1fr; } }
+
+  .nb-stats { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+
+  .note-card {
+    position: relative;
+    padding: 22px;
+    border-radius: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    border-left: 5px solid var(--note-accent, #a855f7);
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border-top: 1px solid var(--glass-bd);
+    border-right: 1px solid var(--glass-bd);
+    border-bottom: 1px solid var(--glass-bd);
+  }
+  .note-card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 24px 60px rgba(160, 60, 255, 0.4);
+    border-left-width: 8px;
+  }
+  .note-card.pinned {
+    box-shadow: 0 0 0 2px rgba(251,191,36,0.5), 0 20px 60px rgba(251,191,36,0.3);
+  }
+
+  .note-card.c-violet  { --note-accent: #a855f7; }
+  .note-card.c-pink    { --note-accent: #ec4899; }
+  .note-card.c-cyan    { --note-accent: #22d3ee; }
+  .note-card.c-amber   { --note-accent: #f59e0b; }
+  .note-card.c-emerald { --note-accent: #10b981; }
+  .note-card.c-rose    { --note-accent: #f43f5e; }
+  .note-card.c-slate   { --note-accent: #94a3b8; }
+
+  .note-body.f-normal { font-family: inherit; font-size: 0.95rem; white-space: pre-wrap; }
+  .note-body.f-bold   { font-family: inherit; font-weight: 700; white-space: pre-wrap; }
+  .note-body.f-italic { font-family: inherit; font-style: italic; white-space: pre-wrap; }
+  .note-body.f-handwritten {
+    font-family: 'Caveat', 'Comic Sans MS', cursive;
+    font-size: 1.2rem; letter-spacing: 0.3px; white-space: pre-wrap;
+  }
+  .note-body.f-code {
+    font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+    font-size: 0.88rem; background: rgba(0,0,0,0.3);
+    padding: 10px; border-radius: 10px; white-space: pre-wrap;
+  }
+
+  .prio-pill {
+    font-size: 0.7rem; padding: 3px 9px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700;
+    white-space: nowrap;
+  }
+  .prio-low     { background: rgba(148,163,184,0.2);  color: #cbd5e1; }
+  .prio-normal  { background: rgba(168,85,247,0.2);   color: #ddd6fe; }
+  .prio-high    { background: rgba(245,158,11,0.22);  color: #fcd34d; }
+  .prio-urgent  { background: rgba(239,68,68,0.22);   color: #fca5a5; }
+
+  .nb-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+  }
+  @media (max-width: 700px) { .nb-grid { grid-template-columns: 1fr; } }
+
+  .note-actions { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; align-items: center; }
+  .icon-action {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--glass-bd);
+    border-radius: 10px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text);
+    transition: 0.2s;
+  }
+  .icon-action:hover {
+    background: rgba(168,85,247,0.2);
+    transform: translateY(-2px);
+  }
+
+  /* ================= MODAL ================= */
+  .modal-bg {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,4,24,0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1000;
+    align-items: flex-start; justify-content: center;
+    padding: 40px 20px;
+    overflow-y: auto;
+  }
+  .modal-bg.open { display: flex; }
+
+  .modal {
+    max-width: 720px; width: 100%;
+    padding: 30px;
+    border-radius: 22px;
+    margin: auto;
+  }
+
+  /* ============ COLOR PICKER (FIXED) ============ */
+  .color-picker {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    padding: 6px 0;
+  }
+  .color-dot {
+    position: relative;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s;
+    display: inline-block;
+  }
+  .color-dot:hover { transform: scale(1.15); }
+  .color-dot input {
+    position: absolute;
+    opacity: 0;
+    width: 100%; height: 100%;
+    margin: 0; padding: 0;
+    cursor: pointer;
+  }
+  .color-dot.active {
+    border-color: white;
+    box-shadow: 0 0 20px 2px currentColor;
+    transform: scale(1.1);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="glass panel">
+  <h1 class="panel-title">📓 {{ t('notebook') }}</h1>
+  <div class="nb-stats">
+    <span class="chip">📝 {{ stats.total }} ta yozuv</span>
+    <span class="chip ok">⭐ {{ stats.fav }} sevimli</span>
+    <span class="chip warn">📌 {{ stats.pinned }} qadalgan</span>
+  </div>
+</section>
+
+<section class="glass panel">
+  <form method="get" class="form nb-toolbar">
+    <input name="q" value="{{ q }}" placeholder="🔍 Qidirish..." />
+    <select name="subject">
+      <option value="">— Fan —</option>
+      {% for s in subjects %}
+        <option value="{{ s }}" {% if subject_filter==s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <select name="color">
+      <option value="">— Rang —</option>
+      {% for c in colors %}<option value="{{ c }}" {% if color_filter==c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select>
+    <select name="priority">
+      <option value="">— Muhimlik —</option>
+      {% for p in priorities %}<option value="{{ p }}" {% if priority_filter==p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+    </select>
+    <select name="sort">
+      <option value="new"  {% if sort=='new' %}selected{% endif %}>Yangi</option>
+      <option value="old"  {% if sort=='old' %}selected{% endif %}>Eski</option>
+      <option value="title" {% if sort=='title' %}selected{% endif %}>Sarlavha</option>
+    </select>
+    <label class="check"><input type="checkbox" name="fav" value="1" {% if fav=='1' %}checked{% endif %}/> ⭐</label>
+    <button class="btn primary" type="submit">Filtrlash</button>
+  </form>
+</section>
+
+<section style="text-align:right; margin: 14px 0;">
+  <button type="button" class="btn primary lg" onclick="openCreate()">➕ Yangi yozuv</button>
+</section>
+
+<section class="nb-grid">
+  {% for n in notes %}
+  <article class="note-card c-{{ n.color or 'violet' }} {% if n.is_pinned %}pinned{% endif %}">
+    <div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start; flex-wrap:wrap;">
+      <div style="flex:1; min-width:0;">
+        <div class="list-title" style="font-size:1.05rem;">
+          {% if n.is_pinned %}📌 {% endif %}{{ n.title }}
+          {% if n.is_favorite %} <span style="color:#fbbf24;">⭐</span>{% endif %}
+        </div>
+        <div class="list-meta">
+          {{ n.subject or '—' }}
+          {% if n.category %} · 🏷️ {{ n.category }}{% endif %}
+          · {{ n.updated_at.strftime('%Y-%m-%d %H:%M') }}
+        </div>
+      </div>
+      <span class="prio-pill prio-{{ n.priority or 'normal' }}">{{ n.priority or 'normal' }}</span>
+    </div>
+
+    <p class="note-body f-{{ n.font_style or 'normal' }}">
+      {{ n.body[:500] }}{% if n.body|length > 500 %}…{% endif %}
+    </p>
+
+    {% if n.tags %}
+    <div class="chips small">
+      {% for tg in n.tags %}<span class="chip">{{ tg }}</span>{% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="note-actions">
+      <button type="button" class="icon-action"
+        data-id="{{ n.id }}"
+        data-title="{{ n.title|e }}"
+        data-body="{{ n.body|e }}"
+        data-subject="{{ (n.subject or '')|e }}"
+        data-category="{{ (n.category or '')|e }}"
+        data-tags="{{ (n.tags|join(',')) if n.tags else '' }}"
+        data-color="{{ n.color or 'violet' }}"
+        data-font="{{ n.font_style or 'normal' }}"
+        data-priority="{{ n.priority or 'normal' }}"
+        data-fav="{{ 'on' if n.is_favorite else 'off' }}"
+        onclick="openEditFromBtn(this)">✏️ Tahrir</button>
+
+      <form method="post" action="/notebook/{{ n.id }}/toggle-fav" style="display:inline;">
+        <button type="submit" class="icon-action" title="Sevimli">⭐</button>
+      </form>
+
+      <form method="post" action="/notebook/{{ n.id }}/toggle-pin" style="display:inline;">
+        <button type="submit" class="icon-action" title="Qadash">📌</button>
+      </form>
+
+      <form method="post" action="/notebook/{{ n.id }}/delete" style="display:inline;"
+            onsubmit="return confirm('{{ t('confirm_delete') }}')">
+        <button type="submit" class="icon-action" style="color:#fca5a5;">🗑️</button>
+      </form>
+    </div>
+  </article>
+  {% else %}
+  <div class="glass" style="padding:40px; text-align:center; grid-column:1/-1;">
+    <div style="font-size:3rem; margin-bottom:10px;">📓</div>
+    <h3>Hozircha yozuvlar yo'q</h3>
+    <p style="color:var(--muted);">Birinchi yozuvingizni yarating</p>
+    <button type="button" class="btn primary" onclick="openCreate()">➕ Yaratish</button>
+  </div>
+  {% endfor %}
+</section>
+
+<!-- ==================== MODAL ==================== -->
+<div class="modal-bg" id="modal">
+  <div class="modal glass">
+    <h2 id="modalTitle" class="panel-title">➕ Yangi yozuv</h2>
+    <form method="post" id="noteForm" class="form" action="/notebook/create">
+      <div class="row-2">
+        <div>
+          <label>Sarlavha *</label>
+          <input name="title" id="f_title" required />
+        </div>
+        <div>
+          <label>Fan</label>
+          <input name="subject" id="f_subject" list="subjects-list" />
+          <datalist id="subjects-list">
+            {% for s in subjects %}<option value="{{ s }}"></option>{% endfor %}
+          </datalist>
+        </div>
+      </div>
+
+      <label>Matn *</label>
+      <textarea name="body" id="f_body" rows="7" required></textarea>
+
+      <div class="row-2">
+        <div>
+          <label>Kategoriya</label>
+          <input name="category" id="f_category" placeholder="Masalan: Formulalar" />
+        </div>
+        <div>
+          <label>Teglar (vergul bilan)</label>
+          <input name="tags" id="f_tags" placeholder="algebra, formula" />
+        </div>
+      </div>
+
+      <label>🎨 Rang</label>
+      <div class="color-picker" id="colorPicker">
+        <label class="color-dot" style="background:#a855f7; color:#a855f7;">
+          <input type="radio" name="color" value="violet" checked/>
+        </label>
+        <label class="color-dot" style="background:#ec4899; color:#ec4899;">
+          <input type="radio" name="color" value="pink"/>
+        </label>
+        <label class="color-dot" style="background:#22d3ee; color:#22d3ee;">
+          <input type="radio" name="color" value="cyan"/>
+        </label>
+        <label class="color-dot" style="background:#f59e0b; color:#f59e0b;">
+          <input type="radio" name="color" value="amber"/>
+        </label>
+        <label class="color-dot" style="background:#10b981; color:#10b981;">
+          <input type="radio" name="color" value="emerald"/>
+        </label>
+        <label class="color-dot" style="background:#f43f5e; color:#f43f5e;">
+          <input type="radio" name="color" value="rose"/>
+        </label>
+        <label class="color-dot" style="background:#94a3b8; color:#94a3b8;">
+          <input type="radio" name="color" value="slate"/>
+        </label>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label>✍️ Shrift uslubi</label>
+          <select name="font_style" id="f_font">
+            <option value="normal">Oddiy</option>
+            <option value="bold">Qalin</option>
+            <option value="italic">Kursiv</option>
+            <option value="handwritten">Qo'lyozma</option>
+            <option value="code">Kod</option>
+          </select>
+        </div>
+        <div>
+          <label>⚡ Muhimlik</label>
+          <select name="priority" id="f_priority">
+            <option value="low">Past</option>
+            <option value="normal" selected>Normal</option>
+            <option value="high">Yuqori</option>
+            <option value="urgent">Shoshilinch</option>
+          </select>
+        </div>
+      </div>
+
+      <label class="check"><input type="checkbox" name="is_favorite" id="f_fav"/> ⭐ Sevimlilarga qo'shish</label>
+
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        <button type="submit" class="btn primary lg" style="flex:1;">💾 Saqlash</button>
+        <button type="button" class="btn" onclick="closeModal()">Bekor</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function syncColorActive() {
+    document.querySelectorAll('#colorPicker .color-dot').forEach(dot => {
+      const inp = dot.querySelector('input');
+      dot.classList.toggle('active', inp.checked);
+    });
+  }
+
+  function openCreate() {
+    document.getElementById('modalTitle').innerText = '➕ Yangi yozuv';
+    const form = document.getElementById('noteForm');
+    form.action = '/notebook/create';
+    form.reset();
+    document.querySelectorAll('#colorPicker input').forEach(el => el.checked = false);
+    document.querySelector('#colorPicker input[value="violet"]').checked = true;
+    syncColorActive();
+    document.getElementById('modal').classList.add('open');
+    setTimeout(() => document.getElementById('f_title').focus(), 100);
+  }
+
+  function openEditFromBtn(btn) {
+    const d = btn.dataset;
+    document.getElementById('modalTitle').innerText = '✏️ Tahrirlash';
+    const form = document.getElementById('noteForm');
+    form.action = '/notebook/' + d.id + '/update';
+    document.getElementById('f_title').value = d.title;
+    document.getElementById('f_body').value = d.body;
+    document.getElementById('f_subject').value = d.subject;
+    document.getElementById('f_category').value = d.category;
+    document.getElementById('f_tags').value = d.tags;
+    document.getElementById('f_font').value = d.font;
+    document.getElementById('f_priority').value = d.priority;
+    document.getElementById('f_fav').checked = (d.fav === 'on');
+    document.querySelectorAll('#colorPicker input').forEach(el => {
+      el.checked = (el.value === d.color);
+    });
+    syncColorActive();
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  document.getElementById('modal').addEventListener('click', (e) => {
+    if (e.target.id === 'modal') closeModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  document.querySelectorAll('#colorPicker input').forEach(el => {
+    el.addEventListener('change', syncColorActive);
+  });
+
+  // initial
+  syncColorActive();
+</script>
+
+{% endblock %}
